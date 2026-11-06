@@ -313,3 +313,5 @@ python3 paper/paper_trade.py status              # mark the book to market
 * **Fills:** in regular hours (Mon–Fri 09:30–15:58 ET) at the live price with 5 bps slippage against you; outside them at the last official close, labelled `EOD fill`. `--regular-hours-only` reproduces the live Mandate (analysis only when the market is closed).
 * **Not modelled:** earnings blackout, dividends, commissions.
 * **Records:** `paper/ledger.json` (the account), `paper/trades.csv` (every fill), `paper/equity.csv` (equity per run), `paper/logs/*.md` (full session report with scorecards). Edit `paper/watchlist.txt` to change the universe.
+
+**Daily report:** type `report1` in a Claude Code session on this repo (skill in `.claude/skills/report1/`). It pulls the latest ledger and shows `python3 paper/paper_trade.py report`: the account marked to market, the equity history and drawdown, the trade history with win rate, and the latest session log in full.

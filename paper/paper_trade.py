@@ -18,6 +18,7 @@ Commands
   init   [--cash 10000]           start a fresh paper account (refuses to overwrite)
   run    [--dry-run] [--regular-hours-only] [--symbols A,B]
   status                          mark positions to market and print the book
+  report                          full daily report (what "report1" shows)
 
 Fill model
   Regular hours (Mon-Fri 09:30-15:58 ET): live price, slippage --slippage-bps
@@ -391,6 +392,91 @@ def render_report(sess, macro, cards, fills, skipped, errors, notes, led, prices
     return "\n".join(L)
 
 
+def _read_csv(path: str) -> list[dict]:
+    if not os.path.exists(path):
+        return []
+    with open(path, newline="") as f:
+        return list(csv.DictReader(f))
+
+
+def cmd_report(args) -> int:
+    """Daily report: latest session in full + live book + performance + trade history."""
+    led = load_ledger()
+    logs = sorted(f for f in os.listdir(LOGDIR) if f.endswith(".md")) if os.path.isdir(LOGDIR) else []
+    out = ["# Daily paper desk report", ""]
+
+    # 1. Live book (marked to market now; falls back to last logged prices)
+    prices, stale_px = {}, []
+    for s in led["positions"]:
+        try:
+            prices[s] = MD.daily_bars(s, "5d")["last_price"]
+        except MD.DataError:
+            stale_px.append(s)
+    out.append(f"## Account right now ({MD.market_session()['now_et']})")
+    out.append(render_book(led, prices))
+    if stale_px:
+        out.append(f"(live price unavailable for {', '.join(stale_px)}: last logged price used)")
+    out.append("")
+
+    # 2. Performance over time
+    eq = _read_csv(EQUITY)
+    out.append("## Performance")
+    if eq:
+        vals = [float(r["equity"]) for r in eq]
+        peak, mdd = vals[0], 0.0
+        for v in vals:
+            peak = max(peak, v)
+            mdd = min(mdd, v / peak - 1)
+        out.append(f"Start ${led['starting_cash']:,.2f} on {led['created_utc'][:10]} · "
+                   f"{len(eq)} sessions logged · max drawdown {mdd * 100:.2f}%")
+        out.append("")
+        out.append("| session (ET) | equity | cash | invested | positions | total return |")
+        out.append("|---|---:|---:|---:|---:|---:|")
+        for r in eq[-10:]:
+            out.append(f"| {r['session_et']} | {float(r['equity']):,.2f} | {float(r['cash']):,.2f} | "
+                       f"{float(r['invested']):,.2f} | {r['positions']} | {float(r['total_return_pct']):+.2f}% |")
+        if len(eq) > 10:
+            out.append(f"(last 10 of {len(eq)} sessions — full history in paper/equity.csv)")
+    else:
+        out.append("No sessions logged yet.")
+    out.append("")
+
+    # 3. Trade history + closed-trade stats
+    tr = _read_csv(TRADES)
+    out.append("## Trade history")
+    sells = [r for r in tr if r["side"] == "sell"]
+    if sells:
+        pnl = [float(r["realized_pnl"]) for r in sells]
+        wins = [p for p in pnl if p > 0]
+        out.append(f"Closed trades: {len(sells)} · wins {len(wins)} / losses {len(pnl) - len(wins)} · "
+                   f"win rate {len(wins) / len(pnl) * 100:.0f}% · realized ${sum(pnl):+,.2f}")
+    if tr:
+        out.append("")
+        out.append("| session (ET) | side | symbol | qty | price | notional | decision | realized |")
+        out.append("|---|---|---|---:|---:|---:|---|---:|")
+        for r in tr[-20:]:
+            out.append(f"| {r['session_et']} | {r['side'].upper()} | {r['symbol']} | {float(r['qty']):.4f} | "
+                       f"{float(r['price']):.2f} | {float(r['notional']):,.2f} | {r['decision']} | "
+                       f"{r['realized_pnl'] or '—'} |")
+        if len(tr) > 20:
+            out.append(f"(last 20 of {len(tr)} trades — full history in paper/trades.csv)")
+    else:
+        out.append("No trades yet.")
+    out.append("")
+
+    # 4. Latest session report, in full
+    out.append("---")
+    if logs:
+        out.append(f"## Latest session log (paper/logs/{logs[-1]})")
+        with open(os.path.join(LOGDIR, logs[-1])) as f:
+            body = f.read().strip()
+        out.append(body.replace("\n## ", "\n### ").replace("# Paper desk session", "**Session**", 1))
+    else:
+        out.append("No session log yet.")
+    print("\n".join(out))
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Paper-trading desk for the three-pillar framework.")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -402,8 +488,10 @@ def main() -> int:
     p.add_argument("--symbols", help="Comma list overriding watchlist.txt")
     p.add_argument("--slippage-bps", type=float, default=5.0)
     sub.add_parser("status")
+    sub.add_parser("report")
     args = ap.parse_args()
-    return {"init": cmd_init, "run": cmd_run, "status": cmd_status}[args.cmd](args)
+    return {"init": cmd_init, "run": cmd_run, "status": cmd_status,
+            "report": cmd_report}[args.cmd](args)
 
 
 if __name__ == "__main__":
