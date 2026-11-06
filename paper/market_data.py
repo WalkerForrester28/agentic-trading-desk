@@ -29,11 +29,12 @@ class DataError(RuntimeError):
     pass
 
 
-def _get(url: str, retries: int = 3) -> bytes:
+def _get(url: str, retries: int = 3, headers: dict | None = None, timeout: float = 30) -> bytes:
     last = None
     for attempt in range(retries):
         try:
-            with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30) as r:
+            req = urllib.request.Request(url, headers=UA if headers is None else headers)
+            with urllib.request.urlopen(req, timeout=timeout) as r:
                 return r.read()
         except Exception as e:  # network, HTTP 429/5xx
             last = e
@@ -75,7 +76,11 @@ def daily_bars(symbol: str, range_: str = "2y") -> dict:
 
 def yield_spread(n: int = 120) -> list[float]:
     """Last n daily observations of the 10Y-2Y spread (percentage points)."""
-    raw = _get("https://fred.stlouisfed.org/graph/fredgraph.csv?id=T10Y2Y").decode()
+    # FRED's edge silently stalls requests carrying a custom User-Agent (verified
+    # 2026-11-06: Python's default UA and curl answer in <1s, ours timed out
+    # every time), so send no custom header here.
+    raw = _get("https://fred.stlouisfed.org/graph/fredgraph.csv?id=T10Y2Y",
+               headers={}, timeout=15).decode()
     vals = []
     for row in csv.reader(io.StringIO(raw)):
         if len(row) == 2:
