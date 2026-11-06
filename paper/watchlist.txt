@@ -1,0 +1,16 @@
+# Paper desk watchlist: one ticker per line. Edit freely.
+SPY
+QQQ
+IWM
+DIA
+XLK
+XLF
+XLE
+XLV
+AAPL
+MSFT
+NVDA
+AMZN
+GOOGL
+META
+JPM

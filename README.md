@@ -293,3 +293,23 @@ The matcher is a regex on purpose: the MCP server prefix differs between install
 **`session-setup.sh`** installs `jq` (root or passwordless `sudo`; never prompts), checks the user-level copy is in sync, and runs **15 probes against every guard copy** — 12 prohibited orders that must be denied and 3 permitted ones that must pass (a guard that denies everything is as broken as one that allows everything). It prints `order guard verified` and exits 0 only if every probe behaves; otherwise `ORDER GUARD NOT VERIFIED` and exit 1. A `SessionStart` hook cannot block the session — its output lands in the session context, and `SKILL.md` forbids executing orders unless that line says verified. In skill mode `SKILL.md` runs it by hand.
 
 *   **Cloud runs** (claude.ai/code): the environment's **network access must be `Trusted`** or higher, or `apt-get` cannot reach the Ubuntu archives and `session-setup.sh` fails by design. Hooks load only for the repository the session opens — confirm a scheduled run opens this one. See https://code.claude.com/docs/en/claude-code-on-the-web
+
+---
+
+## 📝 Paper Trading (no broker)
+
+`paper/` runs the same framework without Robinhood: public market data in, simulated fills out, everything logged to files committed to git.
+
+```bash
+python3 paper/paper_trade.py init --cash 10000   # open the paper account (once)
+python3 paper/paper_trade.py run                 # fetch data, score, trade, log
+python3 paper/paper_trade.py run --dry-run       # same, without touching the ledger
+python3 paper/paper_trade.py status              # mark the book to market
+```
+
+* **Data:** daily bars from Yahoo Finance (`query1.finance.yahoo.com`) and the 10Y-2Y spread from FRED (`fred.stlouisfed.org`). Both hosts must be on the environment's network allowlist. No API keys.
+* **Decisions:** only `score.py` decisions trade (zero discretion). `RE-ENTRY` buys at base size, `TACTICAL REBOUND` at half size (also half when macro ≤ −1), `EXIT` / `EXIT / TRIM` sells the whole position.
+* **Mandate limits:** 3% of equity per buy, capped at $1,200; max 3 new positions per run; 15% cash reserve; no adding to open positions; no buys after a >4% equity drop since the previous run; symbols with stale data are skipped.
+* **Fills:** in regular hours (Mon–Fri 09:30–15:58 ET) at the live price with 5 bps slippage against you; outside them at the last official close, labelled `EOD fill`. `--regular-hours-only` reproduces the live Mandate (analysis only when the market is closed).
+* **Not modelled:** earnings blackout, dividends, commissions.
+* **Records:** `paper/ledger.json` (the account), `paper/trades.csv` (every fill), `paper/equity.csv` (equity per run), `paper/logs/*.md` (full session report with scorecards). Edit `paper/watchlist.txt` to change the universe.
