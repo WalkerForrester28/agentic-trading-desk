@@ -171,7 +171,7 @@ def cmd_status(args) -> int:
     prices = {}
     for s in led["positions"]:
         try:
-            prices[s] = MD.daily_bars(s, "5d")["last_price"]
+            prices[s] = MD.daily_bars(s, "3mo")["last_price"]
         except MD.DataError as e:
             print(f"warning: {e}; using last logged price", file=sys.stderr)
     print(render_book(led, prices))
@@ -409,7 +409,7 @@ def cmd_report(args) -> int:
     prices, stale_px = {}, []
     for s in led["positions"]:
         try:
-            prices[s] = MD.daily_bars(s, "5d")["last_price"]
+            prices[s] = MD.daily_bars(s, "3mo")["last_price"]
         except MD.DataError:
             stale_px.append(s)
     out.append(f"## Account right now ({MD.market_session()['now_et']})")
