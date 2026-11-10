@@ -1,0 +1,3 @@
+timestamp_utc,session_et,symbol,side,qty,price,notional,decision,fill_basis,realized_pnl,cash_after
+2026-11-09T19:35:56+00:00,2026-11-09 14:35 EST,AMZN,buy,1.119319,268.0200,300.00,RE-ENTRY (new cycle),live price,,9700.00
+2026-11-09T19:35:56+00:00,2026-11-09 14:35 EST,MSFT,buy,0.549904,545.5500,300.00,RE-ENTRY (new cycle),live price,,9400.00
