@@ -1,20 +1,20 @@
 {
   "cash": 9400.0,
   "created_utc": "2026-11-06T05:37:54+00:00",
-  "last_equity": 9973.4,
-  "last_run_utc": "2026-11-16T19:35:20+00:00",
+  "last_equity": 9965.84,
+  "last_run_utc": "2026-11-17T19:35:30+00:00",
   "positions": {
     "AMZN": {
       "avg_cost": 268.02,
       "entry_decision": "RE-ENTRY (new cycle)",
-      "last_price": 257.495,
+      "last_price": 256.605,
       "opened": "2026-11-09",
       "qty": 1.119319
     },
     "MSFT": {
       "avg_cost": 545.55,
       "entry_decision": "RE-ENTRY (new cycle)",
-      "last_price": 518.61,
+      "last_price": 506.66,
       "opened": "2026-11-09",
       "qty": 0.549904
     }
