@@ -1,15 +1,22 @@
 {
-  "cash": 9667.72,
+  "cash": 9518.39,
   "created_utc": "2026-11-06T05:37:54+00:00",
-  "last_equity": 9945.0,
-  "last_run_utc": "2026-11-20T19:35:34+00:00",
+  "last_equity": 9955.2,
+  "last_run_utc": "2026-11-23T19:35:39+00:00",
   "positions": {
     "AMZN": {
       "avg_cost": 268.02,
       "entry_decision": "RE-ENTRY (new cycle)",
-      "last_price": 247.72,
+      "last_price": 256.9,
       "opened": "2026-11-09",
       "qty": 1.119319
+    },
+    "GOOGL": {
+      "avg_cost": 283.831845,
+      "entry_decision": "TACTICAL REBOUND (counter-trend)",
+      "last_price": 283.831845,
+      "opened": "2026-11-23",
+      "qty": 0.526118
     }
   },
   "realized_pnl": -32.28,
