@@ -1,13 +1,20 @@
 {
-  "cash": 9664.79,
+  "cash": 9366.31,
   "created_utc": "2026-11-06T05:37:54+00:00",
-  "last_equity": 9938.39,
-  "last_run_utc": "2026-11-26T19:36:00+00:00",
+  "last_equity": 9949.08,
+  "last_run_utc": "2026-11-27T19:35:26+00:00",
   "positions": {
+    "AAPL": {
+      "avg_cost": 358.71927,
+      "entry_decision": "RE-ENTRY (new cycle)",
+      "last_price": 358.71927,
+      "opened": "2026-11-27",
+      "qty": 0.832063
+    },
     "AMZN": {
       "avg_cost": 268.02,
       "entry_decision": "RE-ENTRY (new cycle)",
-      "last_price": 244.43,
+      "last_price": 254.12,
       "opened": "2026-11-09",
       "qty": 1.119319
     }
